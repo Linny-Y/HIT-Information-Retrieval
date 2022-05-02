@@ -5,6 +5,7 @@ __pycache__/
 *.doc
 *.docx
 *.pdf
+*.zip
 
 
 # C extensions
