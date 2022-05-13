@@ -6,7 +6,7 @@ __pycache__/
 *.docx
 *.pdf
 *.zip
-
+attachment
 
 # C extensions
 *.so
