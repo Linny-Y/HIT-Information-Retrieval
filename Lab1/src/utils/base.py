@@ -36,7 +36,7 @@ class Base(object):
             if len(current) == 0:
                 break
             num += len(current)
-            print(num, len(pages))
+            # print(num, len(pages))
 
             jobs = []
             for u in current:   # 获取页面内容
@@ -49,6 +49,7 @@ class Base(object):
                     continue
             # for u in current:
             #     pages.append(Page.load_url(u, file_path))
+            print(len(pages), end=" ")
 
             htmls = []
             jobs = []
@@ -61,7 +62,7 @@ class Base(object):
             # print(htmls)
             current = []
             for html in htmls:
-                if 'http' in html: 
+                if 'http' in html:
                     continue
                 html = root_url + html
 
@@ -70,7 +71,7 @@ class Base(object):
                     current.append(html)
         pool.close()
         pool.join()
-        print(len(pages))
+        # print(len(pages))
         return Base(pages)
 
     def tokenize(self, tokenizer):
@@ -90,9 +91,14 @@ class Base(object):
         :param output_path: 输出路径
         """
         with open(output_path, 'w', encoding='utf-8') as f:
-            for page in self.pages:
+            for i, page in enumerate(self.pages):
                 if 'seg' in output_path:
                     json.dump(page.data_seg, f, ensure_ascii=False)
+                elif 'pre' in output_path:   # 输出前10行
+                    if i < 10:
+                        json.dump(page.data_seg, f, ensure_ascii=False)
+                    else:
+                        break
                 else:
                     json.dump(page.data, f, ensure_ascii=False)
                 f.write('\n')
@@ -121,7 +127,7 @@ def crawl(url, ends):
     all_href = soup.find_all('a')  # 超链接标签
     for h in all_href:
         try:
-            next_url = h['href'] # href属性
+            next_url = h['href']  # href属性
             # print(next_url)
         except:
             continue

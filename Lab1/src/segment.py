@@ -7,3 +7,4 @@ if __name__ == '__main__':
 
     base.tokenize(tokenizer)
     base.save_json('../data/results/segment.json')
+    base.save_json('../data/results/preprocessed.json')

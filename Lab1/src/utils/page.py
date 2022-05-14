@@ -38,7 +38,7 @@ class Page(object):
         :param attachment_type: 下载附件类型
         :param tokenizer: 分词器, None不进行分词
         """
-        url_root = re.findall(r'https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+',
+        root_url = re.findall(r'https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+',
                               url)[0]
 
         html = urlopen(url).read().decode('utf-8')
@@ -61,7 +61,7 @@ class Page(object):
             name = h.get_text()
             if name.endswith(attachment_type):
                 current_url = h['href']
-                download_url.append(url_root + current_url)
+                download_url.append(root_url + current_url)
                 file_name.append(name)
 
         if len(file_name):
@@ -70,7 +70,7 @@ class Page(object):
 
             for i in range(len(file_name)):
                 file_path_now = file_path + '/' + file_name[i]
-                urlretrieve(download_url[i], file_path_now)
+                urlretrieve(download_url[i], file_path_now)  # 下载文件
         else:
             file_path = None
         return Page(url, title, paragraphs, file_name)
