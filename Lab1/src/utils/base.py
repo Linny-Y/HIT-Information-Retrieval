@@ -16,13 +16,13 @@ class Base(object):
     @staticmethod
     def load_url(root_url, file_path, num_max, ends=('htm')):
         """
-        以root_url为根路径进行BFS, 提取count个网页的信息
-        经过观察，实验选定的网页的子网页均以.htm作为结尾
+        以root_url为根路径进行BFS, 提取最少num_max个网页的信息
+        选择根目录中以.htm作为结尾的子网页遍历
 
         :param root_url: 检索根路径
         :param file_path: 网页附件保存地址
-        :param num_max: 检索网页数量
-        :param ends: 检索网页特征
+        :param num_max: 检索网页最少数量
+        :param ends: 检索网页的结尾特征
         """
 
         pool = Pool()  # 进程池

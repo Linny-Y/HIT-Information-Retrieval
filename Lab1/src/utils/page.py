@@ -25,7 +25,7 @@ class Page(object):
         self.data_seg = {}
         self.data_seg['url'] = url
         self.data_seg['segmented_title'] = ""
-        self.data_seg['segmented_parapraghs'] = ""
+        self.data_seg['segmented_paragraphs'] = ""
         self.data_seg['file_name'] = file_name
 
     @staticmethod
