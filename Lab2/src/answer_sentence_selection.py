@@ -7,6 +7,7 @@ from multiprocessing import Pool
 from ltp import LTP
 from gensim.summarization import bm25
 from sklearn.feature_extraction.text import TfidfTransformer, CountVectorizer, TfidfVectorizer
+from sklearn.externals import joblib
 
 from preprocessed import  get_stop_words, remove_stop_words
 LTP_MODEL_PATH = '../data/data/base1.tgz'
@@ -74,13 +75,13 @@ def BM25_search(train_mode=False):
             else:
                 pid_predict.append([])
         # evaluate
-        match, num = 0, len(pid_true)
-        for i in range(num):
-            if pid_true[i] in pid_predict[i]:
-                match += 1
-        acc = match * 1.0 / num
-        # 0.8707025411061285
-        print('acc: ' + str(acc))
+        # match, num = 0, len(pid_true)
+        # for i in range(num):
+        #     if pid_true[i] in pid_predict[i]:
+        #         match += 1
+        # acc = match * 1.0 / num
+        # # 0.8707025411061285
+        # print('acc: ' + str(acc))
     else:
         for passage in passages_raw:
             question = remove_stop_words(ltp.seg(passage['question'])[0][0])

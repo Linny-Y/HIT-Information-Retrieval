@@ -4,6 +4,7 @@ from preprocessed import  get_stop_words, remove_stop_words
 from sklearn.feature_extraction.text import TfidfTransformer, CountVectorizer, TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn import svm
+import joblib
 from ltp import LTP
 LTP_MODEL_PATH = '../data/data/base1.tgz'
 
@@ -14,6 +15,10 @@ SEG_TRAIN_DATA_PATH = '../data/output/seg_train_questions.txt'
 SEG_TEST_DATA_PATH = '../data/output/seg_test_questions.txt'
 
 TEST_CLF_RESULT_PATH = '../data/output/clf_result_test_questions.txt'
+
+MODEL_FINE_PATH = '../data/output/model_fine'
+MODEL_ROUGH_PATH = '../data/output/model_rough'
+MODEL_TF_IDF_PATH = '../data/output/model_tf_idf'
 
 stop_words = []
 
@@ -103,7 +108,9 @@ def train_predict_svm(rough = False):
     test_data = count_vector.transform(test_text)
     result = clf.predict(test_data)
     score = clf.score(test_data, test_y)
+    
     if not rough:
+        joblib.dump(clf, MODEL_FINE_PATH)
         with open(TEST_CLF_RESULT_PATH, 'w', encoding='utf-8') as f:
             for r, y, q in zip(result, test_y, test_text):
                 f.write(r + '\t' + y + '\t')
@@ -111,6 +118,9 @@ def train_predict_svm(rough = False):
                 for w in list:
                     f.write(w)
                 f.write('\n')
+    else:
+        joblib.dump(clf, MODEL_ROUGH_PATH)
+        joblib.dump(count_vector, MODEL_TF_IDF_PATH)
     acc = {}
     total = {}
     for r, tag in zip(result, test_y):
@@ -140,12 +150,13 @@ def main():
     # print("accuracy: {}".format(rate))
     # rate = train_predict_naive_bayes(True)
     # print("accuracy: {}".format(rate))
-    acc, score = train_predict_svm()
+    fine_acc, fine_score = train_predict_svm()
+    rough_acc, rough_score = train_predict_svm(True)
+
     print("fine", end = ' ')
-    print_score(acc, score)
-    acc, score = train_predict_svm(True)
+    print_score(fine_acc, fine_score)
     print("rough", end = ' ')
-    print_score(acc, score)
+    print_score(rough_acc, rough_score)
 
 
 if __name__ == '__main__':

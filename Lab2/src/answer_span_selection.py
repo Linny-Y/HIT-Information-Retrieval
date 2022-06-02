@@ -13,12 +13,14 @@ TEST_RESULT = '../data/output/test_answer_result.json'
 TRAIN_ANSWER = '../data/output/train_answer.json'
 TEST_ANSWER = '../data/output/test_answer.json'
 
+MODEL_ROUGH_PATH = '../data/output/model_rough'
+MODEL_TF_IDF_PATH = '../data/output/model_tf_idf'
 
 ltp = LTP(LTP_MODEL_PATH)
 def progress(is_train=False):
 
-    clf = joblib.load(ROUGH_MODEL_PATH)
-    tv = joblib.load(TF_IDF_MODEL_PATH)
+    clf = joblib.load(MODEL_ROUGH_PATH)
+    tv = joblib.load(MODEL_TF_IDF_PATH)
     # 读取json文件
     path = TRAIN_DATA if is_train else TEST_RESULT
     with open(path, 'r', encoding='utf-8') as f:

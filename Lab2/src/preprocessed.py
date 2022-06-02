@@ -2,7 +2,6 @@ import json
 import os
 import time
 import numpy as np
-from multiprocessing import Pool
 from ltp import LTP
 LTP_MODEL_PATH = '../data/data/base1.tgz'
 
