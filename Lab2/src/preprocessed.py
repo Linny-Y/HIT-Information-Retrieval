@@ -1,14 +1,19 @@
 import json
 import os
+import time
 import numpy as np
+from multiprocessing import Pool
 from ltp import LTP
+LTP_MODEL_PATH = '../data/data/base1.tgz'
 
-STOP_WORDS_PATH = '../data/stopwords(new).txt'
-DATA_PATH = '../data/passages_multi_sentences.json'
-INDEX_PATH = '../data/index.txt'
+STOP_WORDS_PATH = '../data/data/stopwords(new).txt'
+DATA_PATH = '../data/data/passages_multi_sentences.json'
+
+INDEX_PATH = '../data/output/index.txt'
 
 stop_words = []
 word_dict = {}
+ltp = LTP(LTP_MODEL_PATH)
 
 def get_stop_words():
     """
@@ -39,31 +44,30 @@ def remove_stop_words(text_words: list):
 def preprocess():
     # 读取索引
     if os.path.exists(INDEX_PATH):
-        print("Loading index")
+        print("Loading index\n")
         for line in open(INDEX_PATH, 'r', encoding='utf-8'):
             li = line.split(": ")
             word = li[0]
             pid_list = li[1].strip()[:-1].split(",")
             word_dict[word] = set(pid_list)
         return
-    ltp = LTP()
+    start = time.time()
     for line in open(DATA_PATH, 'r', encoding='utf-8'):
         passage = json.loads(line)
         pid = passage['pid']
         if pid % 1000 == 0: # 进度
             print(pid, end=" ")
-        for sentence in passage['document']:
-            # words, _ = ltp.seg([sentence])
-            # [['门户网站', '腾讯网', '为', '国内', '四', '大门户网站', '。']]
-            # words = words[0]
-            # ['门户网站', '腾讯网', '为', '国内', '四', '大门户网站', '。']
-            # print(words)
-            pred_words = remove_stop_words(ltp.seg([sentence])[0][0])
-            # print(pred_words)
-            for w in pred_words:
+            print(time.time() - start)
+
+        pred_words = [remove_stop_words(x) for x in ltp.seg(passage['document'])[0]]
+        # print(pred_words)
+        # assert 1==0
+        for ws in pred_words:
+            for w in ws:
                 if w not in word_dict.keys():  #建立倒排索引
                     word_dict[w] = set()
                 word_dict[w].add(pid) # 添加索引
+        
     with open(INDEX_PATH, 'w', encoding='utf-8') as index_file:
         for word, indexes in word_dict.items():
             index_file.write(str(word) + ': ')
@@ -71,20 +75,24 @@ def preprocess():
             for i in indexes:
                 index_file.write(str(i) + ',')
             index_file.write('\n')
+    
 
 def search():
     """
     A naive search system.
     :return:
     """
-    print("检索系统说明:")
-    print("使用&&和||连接检索词:")
-    print("&&:与\n||:或\np.s.只支持全&&或全||, 不支持混合式")
-    print("未使用&&或||时, 默认进行分词并默认与模式查询")
-    print("退出: exit")
-    ltp = LTP()
+    print("*************************************************")
+    print("* 检索系统说明:                                 *")
+    print("* 使用以下符号连接检索词:                       *")
+    print("*     &&:与                                     *")
+    print("*     ||:或                                     *")
+    print("* p.s.只支持全&&或全||, 不支持混合式            *")
+    print("* 未使用&&或||时, 默认进行分词并默认与模式查询  *")
+    print("* 退出: exit                                    *")
+    print("*************************************************")
     while True:
-        print("输入检索词: ")
+        print("输入检索词: ", end="")
         question = input()
         if question == 'exit':
             print("Exit!")
@@ -96,34 +104,35 @@ def search():
             word_list = question.split('||')
             and_mode = False
         else:
-            word_list = remove_stop_words(ltp.seg(question)[0][0])
+            word_list = remove_stop_words(ltp.seg([question])[0][0])
         count = []
         for word in word_list:
             if word in word_dict:
                 count.append(word_dict[word])
-        if and_mode:
-            length = len(count)
-            if length == 1:
-                result = count[0]
-            else:
-                result = count[0]
+
+        length = len(count)
+        result = count[0]
+        if and_mode: # 交
+            if length > 1:
                 for i in range(1, length):
                     result = result.intersection(count[i])
-        else:
-            length = len(count)
-            if length == 1:
-                result = count[0]
-            else:
-                result = count[0]
+        else: # 并
+            if length > 1:
                 for i in range(1, length):
                     result = result.union(count[i])
         result = list(result)
-        print("Find pid: ")
-        for res in result[:-1]:
-            print(res + ", ", end='')
-        print(result[-1])    
+        print("Find pid: ", end="")
+        if len(result):
+            for res in result[:-1]:
+                print(res + ", ", end='')
+            print(result[-1])    
+        else:
+            print("Did not find.")
+
+def main():
+    get_stop_words()
+    preprocess()
+    search()
 
 if __name__ == '__main__':
-    get_stop_words()
-    #print(', ' in stop_words)
-    preprocess()
+    main()

@@ -8,6 +8,10 @@ __pycache__/
 *.zip
 attachment
 submit
+svm_rank_windows
+*extracted
+*.tgz
+output
 
 # C extensions
 *.so
