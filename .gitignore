@@ -12,6 +12,7 @@ svm_rank_windows
 *extracted
 *.tgz
 output
+*.tmp
 
 # C extensions
 *.so

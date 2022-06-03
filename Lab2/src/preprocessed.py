@@ -170,7 +170,6 @@ def BM25_search(train_mode=False):
             pid_true.append(passage['pid'])
             question = remove_stop_words(ltp.seg([passage['question']])[0][0])
             scores = bm25_model.get_scores(question)
-            
             sorted_scores = np.argsort(-np.array(scores))
             if sum(np.array(scores) != 0) > 0:
                 pid_predict.append([sorted_scores[0]])
