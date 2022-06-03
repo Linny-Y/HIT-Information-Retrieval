@@ -7,7 +7,7 @@ from multiprocessing import Pool
 from ltp import LTP
 from gensim.summarization import bm25
 from sklearn.feature_extraction.text import TfidfTransformer, CountVectorizer, TfidfVectorizer
-from sklearn.externals import joblib
+import joblib
 
 from preprocessed import  get_stop_words, remove_stop_words
 LTP_MODEL_PATH = '../data/data/base1.tgz'
@@ -25,10 +25,12 @@ TRAIN_SENTENCE = '../data/output/all_sentence.txt'
 TRAIN_BM25 = '../data/output/train_bm25.txt'
 TEST_FEATURE = '../data/output/test_feature.txt'
 TEST_SENTENCE = '../data/output/test_sentence.txt'
+
 SVM_RANK_TRAIN_DATA = '../data/output/svm_train.txt'
 SVM_RANK_DEV_DATA = '../data/output/svm_dev.txt'
 SVM_RANK_TEST_DATA = '../data/output/svm_test.txt'
 RANK_RESULT = '../data/output/svm_result.txt'
+
 SVM_RANK_TRAIN_RESULT = '../data/output/dev_predictions'
 SVM_RANK_TEST_RESULT = '../data/output/test_predictions'
 TEST_RESULT = '../data/output/test_answer_result.json'
@@ -36,64 +38,7 @@ TEST_RESULT = '../data/output/test_answer_result.json'
 
 ltp = LTP(LTP_MODEL_PATH)
 
-def make_seg_data():
-    with open(SEG_DATA_PATH, 'w', encoding='utf-8') as f:
-        for line in open(DATA_PATH, 'r', encoding='utf-8'):
-            passage = json.loads(line)
-            pid = passage['pid']
-            if pid % 1000 == 0:
-                print(pid)
-            passage['document'] = ltp.seg(passage['document'])[0]
-            f.write(json.dumps(passage, ensure_ascii=False) + '\n')
 
-def BM25_search(train_mode=False):
-    get_stop_words()
-    passages = []
-    for line in open(SEG_DATA_PATH, 'r', encoding='utf-8'):
-        passages.append(json.loads(line))
-    # corpus = [' '.join(passage['document']).split(' ') for passage in passages]
-    corpus = []
-    for passage in passages:
-        corpus.append(sen for sen in passage['document'])
-
-    bm25_model = bm25.BM25(corpus)
-
-    passages_raw = []
-    path = TRAIN_DATA if train_mode else TEST_DATA
-    for line in open(path, 'r', encoding='utf-8'):
-        passages_raw.append(json.loads(line))
-
-    # test for bm25 search
-    if train_mode:
-        pid_true, pid_predict = [], []
-        for passage in passages_raw:
-            question = remove_stop_words(ltp.seg(passage['question'])[0][0])
-            scores = bm25_model.get_scores(question)
-            sorted_scores = np.argsort(-np.array(scores))
-            if sum(np.array(scores) != 0) > 0:
-                pid_predict.append([sorted_scores[0]])
-            else:
-                pid_predict.append([])
-        # evaluate
-        # match, num = 0, len(pid_true)
-        # for i in range(num):
-        #     if pid_true[i] in pid_predict[i]:
-        #         match += 1
-        # acc = match * 1.0 / num
-        # # 0.8707025411061285
-        # print('acc: ' + str(acc))
-    else:
-        for passage in passages_raw:
-            question = remove_stop_words(ltp.seg(passage['question'])[0][0])
-            scores = bm25_model.get_scores(question)
-            sorted_scores = np.argsort(-np.array(scores))
-            if sum(np.array(scores) != 0) > 0:
-                passage['answer_pid'] = [int(idx) for idx in sorted_scores[0:3]]
-            else:
-                passage['answer_pid'] = []
-        with open(SEARCH_RESULT, 'w', encoding='utf-8') as f:
-            for passage in passages_raw:
-                f.write(json.dumps(passage, ensure_ascii=False) + '\n')
 
 def build_feature(train_mode=True):
     """
