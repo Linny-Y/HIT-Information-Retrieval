@@ -134,6 +134,7 @@ def search():
             print("Did not find.")
 
 def make_seg_data():
+    # 将原文件进行分词
     with open(SEG_DATA_PATH, 'w', encoding='utf-8') as f:
         for line in open(DATA_PATH, 'r', encoding='utf-8'):
             passage = json.loads(line)

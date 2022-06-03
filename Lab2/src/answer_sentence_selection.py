@@ -39,7 +39,6 @@ TEST_RESULT = '../data/output/test_answer_result.json'
 ltp = LTP(LTP_MODEL_PATH)
 
 
-
 def build_feature(train_mode=True):
     """
     从初始数据中抽取特征
@@ -47,24 +46,22 @@ def build_feature(train_mode=True):
     :return: 将提取到的特征写入文件
     """
     # 读取train json文件
-    if train_mode:
-        with open(TRAIN_DATA, 'r', encoding='utf-8') as f:
-            questions = [json.loads(line.strip()) for line in f.readlines()]
-    else:
-        with open(SEARCH_RESULT, 'r', encoding='utf-8') as f:
-            questions = [json.loads(line.strip()) for line in f.readlines()]
+    path = TRAIN_DATA if train_mode else SEARCH_RESULT
+    with open(path, 'r', encoding='utf-8') as f:
+            questions = [json.loads(line) for line in f.readlines()]
+    if not train_mode:
         questions.sort(key=lambda item_: item_['qid'])  # 按qid升序排序
-    # 读入passage json文件
+    # 读入分词后文件
     passage = {}
     with open(SEG_DATA_PATH, encoding='utf-8') as f:
         for line in f.readlines():
-            read = json.loads(line.strip())
+            read = json.loads(line)
             passage[read['pid']] = read['document']
-    # 读入raw passage json文件
+    # 读入原文件
     passage_raw = {}
     with open(DATA_PATH, encoding='utf-8') as f:
         for line in f.readlines():
-            read = json.loads(line.strip())
+            read = json.loads(line)
             passage_raw[read['pid']] = read['document']
 
     # 建立特征矩阵
@@ -186,9 +183,8 @@ def generate_svm_rank_data(train_mode=True):
 def extract_feature(question, answer, cv, tv):
     """
     抽取句子的特征
-    答案句特征：答案句长度；是否含冒号
-    答案句和问句之间的特征：问句和答案句词数差异；uni-gram词共现比例；字符共现比例；
-                        词频cv向量相似度；tf-idf向量相似度；bm25相似度
+    答案句特征: 答案句长度; 是否含冒号
+    答案句和问句之间的特征: 问句和答案句词数差异; uni-gram词共现比例; 字符共现比例; 词频cv向量相似度; tf-idf向量相似度; bm25相似度
     :param question: 问题
     :param answer: 答案
     :param cv: Count Vector
@@ -244,8 +240,57 @@ def get_test_ans():
     with open(TEST_RESULT, 'w', encoding='utf-8') as f:
         for sample in test_res:
             f.write(json.dumps(sample, ensure_ascii=False) + '\n')
+def calculate_mrr():
+    """
+    计算开发集上的完美匹配率 mrr
+    :return:
+    """
+    with open(SVM_RANK_TRAIN_RESULT, 'r', encoding='utf-8') as f:
+        predictions = np.array([float(line.strip()) for line in f.readlines()])
+    dev = []
+    with open(SVM_RANK_DEV_DATA, 'r', encoding='utf-8') as f:
+        i = 0
+        for line in f.readlines():
+            dev.append((i, int(line[0]), int(line.split(' ')[1].split(':')[1])))
+            i += 1
+    old_pid = dev[0][2]
+    q_s = 0
+    question_num = 0
+    question_with_answer = 0
+    prefect_correct = 0
+    mrr = 0.0
+    for i in range(len(dev)):
+        if dev[i][2] != old_pid:
+            p = np.argsort(-predictions[q_s:i]) + q_s
+            for k in range(len(p)):
+                if dev[p[k]][1] == 1:
+                    question_with_answer += 1
+                    if k == 0:
+                        prefect_correct += 1
+                    mrr += 1.0 / float(k + 1)
+                    break
+            q_s = i
+            old_pid = dev[i][2]
+            question_num += 1
+    p = np.argsort(-predictions[q_s:]) + q_s
+    for k in range(len(p)):
+        if dev[p[k]][1] == 1:
+            question_with_answer += 1
+            if k == 0:
+                prefect_correct += 1
+            mrr += 1.0 / float(k + 1)
+            break
+    question_num += 1
+    print("question num:{}, question with answer{}, prefect_correct:{}, MRR:{}"
+          .format(question_num, question_with_answer, prefect_correct, mrr / question_num))
 
 if __name__ == '__main__':
-    # make_seg_data()
-    BM25_search(True)
-    # BM25_search()
+    # train
+    build_feature()
+    generate_svm_rank_data()
+    # test
+    build_feature(False)
+    generate_svm_rank_data(False)
+
+    # calculate_mrr()
+    # get_test_ans()
