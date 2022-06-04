@@ -6,7 +6,6 @@ from ltp import LTP
 from gensim.summarization import bm25
 from sklearn.feature_extraction.text import TfidfTransformer, CountVectorizer, TfidfVectorizer
 
-from preprocessed import  get_stop_words, remove_stop_words
 LTP_MODEL_PATH = '../data/data/base1.tgz'
 
 DATA_PATH = '../data/data/passages_multi_sentences.json'
