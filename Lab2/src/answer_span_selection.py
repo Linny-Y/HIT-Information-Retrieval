@@ -30,31 +30,29 @@ def progress(train_mode=False):
     for question in questions:
         if train_mode:
             ans_sent = ' '.join(question['answer_sentence'])
-            print(question['answer_sentence'])
-            print(ans_sent)
-            assert 1==0
         else:
             if len(question['answer_sentence']) == 0:
-                question.pop('answer_pid')
                 question.pop('answer_sentence')
                 question['answer'] = ''
+                none_cnt += 1
                 res.append(question)
                 continue
             ans_sent = question['answer_sentence'][0]
-        sent = ' '.join(ltp.seg(question['question'])[0][0])
+        sent = ' '.join(ltp.seg([question['question']])[0][0])
         test_data = tv.transform([sent])
-        label = clf.predict(test_data)[0]
-        ans_words = [word for word in ltp.seg(ans_sent)[0][0]]
-        words_pos = ltp.pos(ans_words)
+        label = clf.predict(test_data)[0]  # 获取类别
+        ans_words, hidden = ltp.seg([ans_sent])
+        ans_words = ans_words[0]
+        words_pos = ltp.pos(hidden)[0]
         if '：' in ans_sent or ':' in ans_sent:
-            question['answer'] = ans_sent.split('：')[1] if '：' in ans_sent else ans_sent.split(':')[1]
-        elif label == 'HUM':
+            question['answer'] = ans_sent.split('：')[1].replace(" ", "") if '：' in ans_sent else ans_sent.split(':')[1].replace(" ", "")
+        elif label == 'HUM': # 人名 组织名
             question['answer'] = pos_answer(ans_words, words_pos, ['nh', 'ni'])
-        elif label == 'LOC':
+        elif label == 'LOC': # location noun ,geographical name
             question['answer'] = pos_answer(ans_words, words_pos, ['nl', 'ns'])
-        elif label == 'NUM':
+        elif label == 'NUM':  # number
             question['answer'] = pos_answer(ans_words, words_pos, ['m'])
-        elif label == 'TIME':
+        elif label == 'TIME': # 时间名词
             question['answer'] = pos_answer(ans_words, words_pos, ['nt'])
         else:
             question['answer'] = ''.join(ans_words)
@@ -63,6 +61,7 @@ def progress(train_mode=False):
         res.append(question)
         if question['answer'] == '':
             none_cnt += 1
+
     answer_path = TRAIN_ANSWER if train_mode else TEST_ANSWER
     with open(answer_path, 'w', encoding='utf-8') as f:
         for sample in res:
@@ -75,6 +74,8 @@ def pos_answer(words, words_pos, pos):
         if words_pos[i] in pos:
             res.append(words[i])
     if len(res):
+        if pos[0] == 'm':
+            return res[0]
         return ''.join(res)
     else:
         return ''.join(words)
@@ -88,6 +89,7 @@ def evaluate():
         train_data = [json.loads(line.strip()) for line in f.readlines()]
     with open(TRAIN_ANSWER, 'r', encoding='utf-8') as f:
         train_ans = [json.loads(line.strip()) for line in f.readlines()]
+
     cnt = len(train_data)
     all_prediction = []
     all_ground_truth = []
