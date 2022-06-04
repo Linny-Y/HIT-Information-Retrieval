@@ -109,6 +109,6 @@ def evaluate():
     print("bleu1:{}, exact_match:{},\np:{}, r:{}, f1:{}".format(bleu / cnt, em, p / cnt, r / cnt, f1 / cnt))
 
 if __name__ == '__main__':
-    progress(True)
+    # progress(True)
     evaluate()
-    progress()
+    # progress()
