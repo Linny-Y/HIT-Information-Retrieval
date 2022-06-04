@@ -1,12 +1,10 @@
 import json
-import os
 import time
 import numpy as np
 from scipy.linalg import norm
 from ltp import LTP
 from gensim.summarization import bm25
 from sklearn.feature_extraction.text import TfidfTransformer, CountVectorizer, TfidfVectorizer
-import joblib
 
 from preprocessed import  get_stop_words, remove_stop_words
 LTP_MODEL_PATH = '../data/data/base1.tgz'
