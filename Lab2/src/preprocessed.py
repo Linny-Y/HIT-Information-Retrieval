@@ -55,13 +55,13 @@ def preprocess():
             pid_list = li[1].strip()[:-1].split(",")
             word_dict[word] = set(pid_list)
         return
-    start = time.time()
+    # start = time.time()
     for line in open(DATA_PATH, 'r', encoding='utf-8'):
         passage = json.loads(line)
         pid = passage['pid']
         if pid % 1000 == 0: # 进度
             print(pid, end=" ")
-            print(time.time() - start)
+            # print(time.time() - start)
 
         pred_words = [remove_stop_words(x) for x in ltp.seg(passage['document'])[0]]
         # print(pred_words)
@@ -167,7 +167,7 @@ def BM25_search(train_mode=False):
     if train_mode:
         pid_true, pid_predict = [], []
         for passage in passages_raw:
-            pid_true.append(passage['pid'])
+            pid_true.append(passage['pid']) 
             question = remove_stop_words(ltp.seg([passage['question']])[0][0])
             scores = bm25_model.get_scores(question)
             sorted_scores = np.argsort(-np.array(scores))

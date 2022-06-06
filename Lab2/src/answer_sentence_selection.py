@@ -305,4 +305,4 @@ if __name__ == '__main__':
     """
 
     calculate_mrr()
-    get_test_ans()
+    # get_test_ans()
