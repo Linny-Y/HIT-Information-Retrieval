@@ -13,6 +13,9 @@ svm_rank_windows
 *.tgz
 output
 *.tmp
+craw
+bm25*
+seg_web.json
 
 # C extensions
 *.so
